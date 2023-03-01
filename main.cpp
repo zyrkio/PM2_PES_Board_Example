@@ -40,7 +40,7 @@ int main()
     // Sharp GP2Y0A41SK0F, 4-40 cm IR Sensor
     float ir_distance_mV = 0.0f; // define variable to store measurement
     //??? // create AnalogIn object to read in infrared distance sensor, 0...3.3V are mapped to 0...1
-
+    AnalogIn ir_distance_sensor(PC_2);
 
     main_task_timer.start();
     
@@ -53,8 +53,10 @@ int main()
 
             if (mechanical_button.read()) {
 
+                
                 // read analog input
                 //ir_distance_mV = ???;
+                ir_distance_mV = 1.0e3f * ir_distance_sensor.read() * 3.3f;
 
             }
 
