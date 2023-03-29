@@ -1,7 +1,5 @@
 #include <mbed.h>
-
 #include "PM2_Drivers.h"
-
 # define M_PI 3.14159265358979323846 // number pi, an example in case you need it
 
 
@@ -26,7 +24,6 @@ int main()
 
     // attach button fall function to user button object, button has a pull-up resistor
     user_button.fall(&user_button_pressed_fcn);
-
     // while loop gets executed every main_task_period_ms milliseconds (simple aproach to repeatedly execute main)
     const int main_task_period_ms = 50; // define main task period time in ms e.g. 50 ms -> main task runs 20 times per second
     Timer main_task_timer;              // create Timer object which we use to run the main task every main_task_period_ms
@@ -37,7 +34,6 @@ int main()
 
     // additional led
     DigitalOut additional_led(PB_9); // create DigitalOut object to command extra led (you need to add an aditional resistor, e.g. 220...500 Ohm)
-
 
     // mechanical button
     DigitalIn mechanical_button(PC_5); // create DigitalIn object to evaluate extra mechanical button, you need to specify the mode for proper usage, see below
@@ -79,7 +75,7 @@ int main()
 
     SpeedController speedController_M2(counts_per_turn, kn, max_voltage, pwm_M2, encoder_M2); // default 78.125:1 gear box  with default contoller parameters
     // SpeedController speedController_M2(counts_per_turn * k_gear, kn / k_gear, max_voltage, pwm_M2, encoder_M2); // parameters adjusted to 100:1 gear
-
+    speedController_M2.setMaxAccelerationRPS(1.0f);
     // PositionController positionController_M3(counts_per_turn, kn, max_voltage, pwm_M3, encoder_M3); // default 78.125:1 gear with default contoller parameters
     PositionController positionController_M3(counts_per_turn * k_gear, kn / k_gear, max_voltage, pwm_M3, encoder_M3); // parameters adjusted to 100:1 gear, we need a different speed controller gain here
     positionController_M3.setSpeedCntrlGain(kp * k_gear);   // adjust internal speed controller gain, this is just an example
