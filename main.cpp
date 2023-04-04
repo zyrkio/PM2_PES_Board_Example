@@ -46,12 +46,9 @@ int main()
 
 
     // Futaba Servo S3001 20mm 3kg Analog
-    Servo servo_S1(PB_2);     // create servo objects
-    Servo servo_S2(PC_8);
-    float servo_S1_angle = 0; // servo S1 normalized input: 0...1
-    float servo_S2_angle = 0;
+
     
-    int servo_counter = 0;    // define servo counter, this is an additional variable to make the servos move
+    //int servo_counter = 0;    // define servo counter, this is an additional variable to make the servos move
     const int loops_per_seconds = static_cast<int>(ceilf( 1.0f / (0.001f * (float)main_task_period_ms) ));
 
 
@@ -91,7 +88,7 @@ int main()
         main_task_timer.reset();
 
         if (do_execute_main_task) {
-
+            
             // read analog input
             ir_distance_mV = 1.0e3f * ir_analog_in.read() * 3.3f;
 
@@ -99,19 +96,7 @@ int main()
             additional_led = 1;
 
             // commanding the servos
-            if (servo_S1.isEnabled() && servo_S1.isEnabled()) {
-                
-                // command servo position, increment normalised angle every second until it reaches 1.0f
-                servo_S1.setNorlalisedAngle(servo_S1_angle);
-                if (servo_S1_angle < 1.0f & servo_counter%loops_per_seconds == 0 & servo_counter != 0) {
-                    servo_S1_angle += 0.01f;
-                }
-                servo_S2.setNorlalisedAngle(servo_S2_angle);
-                if (servo_S2_angle < 1.0f & servo_counter%loops_per_seconds == 0 & servo_counter != 0) {
-                    servo_S2_angle += 0.01f;
-                }
-                servo_counter++;
-            }
+        
 
             // state machine
             switch (robot_state_actual) {
@@ -119,8 +104,7 @@ int main()
                 case ROBOT_STATE_INIT:
 
                     // check if servos are enabled, should be alreay disabled at this point, it's just an example
-                    if (!servo_S1.isEnabled()) servo_S1.enable();
-                    if (!servo_S2.isEnabled()) servo_S2.enable();
+ 
 
                     enable_motors = 1; // enable hardwaredriver dc motors: 0 -> disabled, 1 -> enabled
 
@@ -130,9 +114,9 @@ int main()
                 case ROBOT_STATE_FORWARD:
 
                     if (mechanical_button.read()) {
-                        pwm_M1.write(0.75f); // write output voltage to motor M1
-                        speedController_M2.setDesiredSpeedRPS(0.5f); // set a desired speed for speed controlled dc motors M2
-                        positionController_M3.setDesiredRotation(1.5f); // set a desired rotation for position controlled dc motors M3
+                        pwm_M1.write(ir_distance_mV); // write output voltage to motor M1
+                        speedController_M2.setDesiredSpeedRPS(ir_distance_mV); // set a desired speed for speed controlled dc motors M2
+                        positionController_M3.setDesiredRotation(ir_distance_mV); // set a desired rotation for position controlled dc motors M3
 
                         robot_state_actual = ROBOT_STATE_BACKWARD;
                     }
@@ -177,10 +161,10 @@ int main()
                 positionController_M3.setDesiredRotation(0.0f);
                 robot_state_actual = ROBOT_STATE_INIT;
 
-                servo_S1_angle = 0;
-                servo_S2_angle = 0;
-                servo_S1.disable();
-                servo_S2.disable();
+                //servo_S1_angle = 0;
+                //servo_S2_angle = 0;
+                //servo_S1.disable();
+                //servo_S2.disable();
 
                 additional_led = 0;
             }            
@@ -190,13 +174,11 @@ int main()
         user_led = !user_led;
 
         // do only output via serial what's really necessary, this makes your code slow
-        printf("IR sensor (mV): %3.3f, Encoder M1: %3d, Speed M2 (rps) %3.3f, Position M3 (rot): %3.3f, Servo S1 angle (normalized): %3.3f, Servo S2 angle (normalized): %3.3f\r\n",
+        printf("IR sensor (mV): %3.3f, Encoder M1: %3d, Speed M2 (rps) %3.3f, Position M3 (rot): %3.3f\r\n",
                ir_distance_mV,
                encoder_M1.read(),
                speedController_M2.getSpeedRPS(),
-               positionController_M3.getRotation(),
-               servo_S1_angle,
-               servo_S2_angle);
+               positionController_M3.getRotation());
 
         // read timer and make the main thread sleep for the remaining time span (non blocking)
         int main_task_elapsed_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(main_task_timer.elapsed_time()).count();
